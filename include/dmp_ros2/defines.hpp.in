@@ -1,0 +1,10 @@
+#ifndef DMPROS2_DEFINES_HPP
+#define DMPROS2_DEFINES_HPP
+
+namespace dmp_ros2::constants{
+constexpr char source_root_dir[] = "${CMAKE_CURRENT_SOURCE_DIR}";
+constexpr char tests_data_dir[] = "${CMAKE_CURRENT_SOURCE_DIR}/data";
+}
+
+
+#endif  // DMPROS2_DEFINES_HPP

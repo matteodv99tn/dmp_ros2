@@ -15,7 +15,7 @@ add_subdirectory(library)
 # ROS2 packages
 find_package(rclcpp         REQUIRED)
 find_package(geometry_msgs  REQUIRED)
-
+find_package(tf2_ros        REQUIRED)
 
 configure_file(
     ${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/defines.hpp.in
@@ -62,6 +62,8 @@ ament_target_dependencies(
     trajectory_listener
     rclcpp
     geometry_msgs
+    tf2_ros
+)
 )
 
 

@@ -1,6 +1,9 @@
 #ifndef DMPROS2_TRAJ_LISTENER_HPP
 #define DMPROS2_TRAJ_LISTENER_HPP
 
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <rclcpp/node.hpp>
 #include <rclcpp/subscription.hpp>
@@ -32,6 +35,8 @@ private:
     std::string      _reference_frame_name;
 
     rclcpp::Subscription<PoseMsg_t>::SharedPtr _pose_sub;
+    tf2_ros::Buffer                            _tf_buff;
+    tf2_ros::TransformListener                 _tf_listener;
 };
 
 

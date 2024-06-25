@@ -29,6 +29,7 @@ public:
 private:
     PoseTrajectory_t _traj;
     dmp::TimeStamp_t _first_timestamp;
+    std::string      _reference_frame_name;
 
     rclcpp::Subscription<PoseMsg_t>::SharedPtr _pose_sub;
 };

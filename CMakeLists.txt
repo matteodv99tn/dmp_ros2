@@ -22,6 +22,25 @@ configure_file(
     ${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/defines.hpp
 )
 
+add_library(
+    dmp_filesystem
+    ${CMAKE_CURRENT_LIST_DIR}/src/lib/dmp_filesystem.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/lib/demonstration_handler.cpp
+)
+target_include_directories(
+    dmp_filesystem
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/private_include/dmp_filesystem
+)
+target_link_libraries(
+    dmp_filesystem
+    PRIVATE
+    dmplib
+    range-v3
+    fmt::fmt
+)
+
+
 # Goal of this executable:
 # Listen for posestamped messages, store in a buffer and then write to file
 add_executable(
@@ -37,6 +56,7 @@ target_include_directories(
 target_link_libraries(
     trajectory_listener
     dmplib
+    dmp_filesystem
 )
 ament_target_dependencies(
     trajectory_listener

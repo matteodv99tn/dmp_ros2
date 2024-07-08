@@ -98,5 +98,11 @@ install(
     TARGETS trajectory_listener test_node data_preprocessor
     DESTINATION lib/${PROJECT_NAME}
 )
+install(
+    DIRECTORY
+    launch
+    DESTINATION
+    share/${PROJECT_NAME}
+)
 
 ament_package()

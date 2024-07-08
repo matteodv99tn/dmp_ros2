@@ -23,21 +23,47 @@ configure_file(
 )
 
 add_library(
-    dmp_filesystem
+    dmp_commons
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/dmp_filesystem.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/demonstration_handler.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/lib/preprocessing.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/lib/plots.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/lib/trajectory_info.cpp
 )
 target_include_directories(
-    dmp_filesystem
+    dmp_commons
     PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/private_include/dmp_filesystem
+    ${CMAKE_CURRENT_LIST_DIR}/private_include/commons
+    ${CMAKE_CURRENT_LIST_DIR}/include/
 )
 target_link_libraries(
-    dmp_filesystem
-    PRIVATE
+    dmp_commons
+    PUBLIC
     dmplib
-    range-v3
     fmt::fmt
+)
+
+add_executable(
+    data_preprocessor
+    src/nodes/data_preprocessor.cpp
+    src/entrypoints/data_preprocessor.cpp
+)
+target_include_directories(
+    data_preprocessor
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
+target_link_libraries(
+    data_preprocessor
+    dmplib
+    dmp_commons
+)
+ament_target_dependencies(
+    data_preprocessor
+    rclcpp
+    geometry_msgs
+    tf2_ros
 )
 
 
@@ -56,7 +82,7 @@ target_include_directories(
 target_link_libraries(
     trajectory_listener
     dmplib
-    dmp_filesystem
+    dmp_commons
 )
 ament_target_dependencies(
     trajectory_listener
@@ -69,7 +95,7 @@ ament_target_dependencies(
 
 
 install(
-    TARGETS trajectory_listener
+    TARGETS trajectory_listener test_node data_preprocessor
     DESTINATION lib/${PROJECT_NAME}
 )
 

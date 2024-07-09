@@ -1,5 +1,4 @@
 #include "dmp_ros2/data_preprocessor.hpp"
-#include <iostream>
 #include <memory>
 
 #include <rclcpp/executors/single_threaded_executor.hpp>

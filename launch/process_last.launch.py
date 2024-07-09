@@ -12,6 +12,8 @@ def launch_setup(context, *args, **kwarg):
     data_processor_node = Node(
         package="dmp_ros2",
         executable="data_preprocessor",
+        emulate_tty=True,
+        output="screen",
         parameters=[{
             # "demonstrations_directory": ""
             "filter_weights": [2.0, 1.0, 1.0, 0.5],

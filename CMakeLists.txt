@@ -29,6 +29,7 @@ add_library(
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/preprocessing.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/plots.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/trajectory_info.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/lib/se3_dmp.cpp
 )
 target_include_directories(
     dmp_commons

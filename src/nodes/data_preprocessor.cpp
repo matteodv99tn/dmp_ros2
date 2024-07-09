@@ -1,6 +1,7 @@
 #include "dmp_ros2/data_preprocessor.hpp"
 
 #include <cstddef>
+#include <iostream>
 #include <stdexcept>
 
 #include <rclcpp/exceptions/exceptions.hpp>
@@ -10,6 +11,7 @@
 #include "dmp_ros2/demonstration_handler.hpp"
 #include "dmp_ros2/dmp_filesystem.hpp"
 #include "dmp_ros2/preprocessing.hpp"
+#include "dmp_ros2/se3_dmp.hpp"
 #include "dmplib/utils/filter.hpp"
 #include "fmt/format.h"
 
@@ -92,4 +94,8 @@ DataPreprocessor::process_data() const {
             handler.demonstration_data_dir_path().c_str()
     );
     handler.write_demonstrated_trajectories(subtrajs);
+
+    for (const auto& tr: subtrajs){
+        [[maybe_unused]] dmp_ros2::Se3Dmp_t d= dmp_ros2::dmp_from_demonstration(tr, 25);
+    }
 }

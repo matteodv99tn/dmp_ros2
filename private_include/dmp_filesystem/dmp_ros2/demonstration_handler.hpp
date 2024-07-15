@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "dmp_ros2/se3_dmp.hpp"
 #include "dmplib/data_handler/conversions.hpp"
 #include "dmplib/manifolds/se3_manifold.hpp"
 
@@ -34,8 +35,9 @@ public:
             const std::vector<DemonstrationTrajectory_t>& trajs
     );
 
-    std::vector<Path_t> list_demonstrated_trajectories() const;
+    std::vector<Path_t>                    list_demonstrated_trajectories() const;
     std::vector<DemonstrationTrajectory_t> load_demonstrated_trajectories() const;
+    std::vector<Se3Dmp_t> load_demonstrated_dmps(const std::size_t& n_basis) const;
 
 
     bool has_all_raw_entries() const;
@@ -52,6 +54,12 @@ private:
 
     void write_rawtraj_refframe(const std::string& frame_name) const;
 };
+
+std::vector<DemonstrationHandler> all_demonstration_handlers(
+        const std::filesystem::path& base_path
+);
+
+std::vector<Se3Dmp_t> all_demonstrations_dmps(const std::filesystem::path& base_path, std::size_t& n_basis);
 
 }  // namespace dmp_ros2::fs
 

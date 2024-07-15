@@ -7,9 +7,21 @@
 #include "dmplib/learnable_functions/weighted_basis_function.hpp"
 #include "dmplib/manifolds/aliases.hpp"
 #include "dmplib/manifolds/se3_manifold.hpp"
+#include "dmplib/transformation_systems/modified_second_order_tf.hpp"
 #include "dmplib/transformation_systems/second_order_tf.hpp"
 
+#define USE_MODIFIED_SYSTEM
 namespace dmp_ros2 {
+
+#ifdef USE_MODIFIED_SYSTEM
+using Se3Dmp_t = dmp::Dmp<
+        dmp::riemannmanifold::SE3,
+        dmp::ExponentialDecayCs,
+        dmp::transformationsystem::ModifiedSecondOrderTs<dmp::riemannmanifold::SE3>,
+        dmp::learnablefunction::WeightedBasisFunction<
+                dmp::learnablefunction::GaussianBf,
+                dmp::riemannmanifold::SE3>>;
+#else
 using Se3Dmp_t = dmp::Dmp<
         dmp::riemannmanifold::SE3,
         dmp::ExponentialDecayCs,
@@ -17,6 +29,7 @@ using Se3Dmp_t = dmp::Dmp<
         dmp::learnablefunction::WeightedBasisFunction<
                 dmp::learnablefunction::GaussianBf,
                 dmp::riemannmanifold::SE3>>;
+#endif
 
 using Se3Traj_t = dmp::StampedPosVelAccTrajectory_t<dmp::riemannmanifold::SE3>;
 

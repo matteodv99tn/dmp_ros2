@@ -55,6 +55,7 @@ dmp_ros2::rolling_mean(const PosTraj_t& traj, const std::vector<double>& weights
         std::get<1>(res[i]).ori.coeffs()(1) = oriy_filt[i];
         std::get<1>(res[i]).ori.coeffs()(2) = oriz_filt[i];
         std::get<1>(res[i]).ori.coeffs()(3) = oriw_filt[i];
+        std::get<1>(res[i]).ori.normalize();
     }
 
     return res;

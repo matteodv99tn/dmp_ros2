@@ -49,26 +49,39 @@ dmp_ros2::plot_trajectory(const Traj_t& traj, const std::string& title) {
     const RealVec_t vx = get_x_vel_view(traj) | rs::to_vector;
     const RealVec_t vy = get_y_vel_view(traj) | rs::to_vector;
     const RealVec_t vz = get_z_vel_view(traj) | rs::to_vector;
+    const RealVec_t ox = get_x_omega_view(traj) | rs::to_vector;
+    const RealVec_t oy = get_y_omega_view(traj) | rs::to_vector;
+    const RealVec_t oz = get_z_omega_view(traj) | rs::to_vector;
 
     plt::figure();
 
-    plt::subplot(3, 1, 1);
+    plt::subplot(4, 1, 1);
+    plt::title("Position");
     if (!title.empty()) plt::title(title);
     plt::named_plot("pos x", time, px);
     plt::named_plot("pos y", time, py);
     plt::named_plot("pos z", time, pz);
     plt::legend();
 
-    plt::subplot(3, 1, 2);
+    plt::subplot(4, 1, 2);
+    plt::title("Orientation");
     plt::named_plot("quat x", time, qx);
     plt::named_plot("quat y", time, qy);
     plt::named_plot("quat z", time, qz);
     plt::named_plot("quat w", time, qw);
     plt::legend();
 
-    plt::subplot(3, 1, 3);
+    plt::subplot(4, 1, 3);
+    plt::title("Linear velocity");
     plt::named_plot("vel x", time, vx);
     plt::named_plot("vel y", time, vy);
     plt::named_plot("vel z", time, vz);
+    plt::legend();
+
+    plt::subplot(4, 1, 4);
+    plt::title("Angular velocity");
+    plt::named_plot("omega x", time, ox);
+    plt::named_plot("omega y", time, oy);
+    plt::named_plot("omega z", time, oz);
     plt::legend();
 }

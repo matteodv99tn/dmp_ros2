@@ -60,6 +60,14 @@ namespace internal {
                    return std::get<2>(sample)(id);
                });
     };
+
+    template <typename Traj>
+    [[nodiscard]] inline auto
+    construct_acc_view(const Traj& traj, const int id) {
+        return traj | rv::transform([id](const auto& sample) -> double {
+                   return std::get<3>(sample)(id);
+               });
+    };
 }  // namespace internal
 
 template <typename Traj>
@@ -130,6 +138,59 @@ get_z_vel_view(const Traj& traj) {
     return internal::construct_vel_view(traj, 2);
 }
 
+template <typename Traj>
+[[nodiscard]] inline auto
+get_x_omega_view(const Traj& traj) {
+    return internal::construct_vel_view(traj, 3);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_y_omega_view(const Traj& traj) {
+    return internal::construct_vel_view(traj, 4);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_z_omega_view(const Traj& traj) {
+    return internal::construct_vel_view(traj, 5);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_x_acc_view(const Traj& traj) {
+    return internal::construct_acc_view(traj, 0);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_y_acc_view(const Traj& traj) {
+    return internal::construct_acc_view(traj, 1);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_z_acc_view(const Traj& traj) {
+    return internal::construct_acc_view(traj, 2);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_x_angular_acc_view(const Traj& traj) {
+    return internal::construct_acc_view(traj, 3);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_y_angular_acc_view(const Traj& traj) {
+    return internal::construct_acc_view(traj, 4);
+}
+
+template <typename Traj>
+[[nodiscard]] inline auto
+get_z_angular_acc_view(const Traj& traj) {
+    return internal::construct_acc_view(traj, 5);
+}
 
 }  // namespace dmp_ros2
 

@@ -16,13 +16,18 @@ def launch_setup(context, *args, **kwarg):
         output="screen",
         parameters=[{
             # "demonstrations_directory": ""
-            "filter_weights": [2.0, 1.0, 1.0, 0.5],
+            "filter_weights": [3.0, 2.0, 2.0, 1.0, 1.0, 0.5],
             "segmentation": {
-                "velocity_th": 0.1,
+                # "velocity_th": 0.1,
+                # "minium_window_length": 200,
+                # "window_size": 40,
+                # "tail_size": 60,
+                "velocity_th": 0.2,
                 "minium_window_length": 200,
-                "window_size": 40,
+                "window_size": 30,
                 "tail_size": 60,
             },
+            "n_basis": 15,
         }])
     nodes_to_start += [
         data_processor_node,

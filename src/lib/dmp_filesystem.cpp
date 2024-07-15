@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <fmt/format.h>
-#include <iostream>
 #include <string_view>
 #include <vector>
 
@@ -36,6 +35,18 @@ fs::demonstration_idxs(const path& base_path) {
            | rv::transform([](const std::string& fn) -> unsigned int {
                  return std::stoi(fn.substr(prefix_length));
              })
+           | rs::to_vector;
+}
+
+std::vector<path>
+fs::demonstration_directories(const std::filesystem::path& base_path) {
+    std::vector<path> path_entries = directory_content(base_path);
+    auto is_directory = [](const path& p) { return std::filesystem::is_directory(p); };
+    auto get_filename = [](const path& p) { return p.filename(); };
+    auto is_demonstration_dir = [](const std::string& fn) {
+        return fn.find(demonstration_prefix) != std::string::npos;
+    };
+    return path_entries | rv::filter(is_directory) | rv::filter(is_demonstration_dir)
            | rs::to_vector;
 }
 

@@ -91,6 +91,23 @@ ament_target_dependencies(
     geometry_msgs
     tf2_ros
 )
+
+add_executable(
+    test_node
+    src/entrypoints/test.cpp
+)
+target_include_directories(
+    test_node
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
+target_link_libraries(
+    test_node 
+    dmp_commons
+)
+ament_target_dependencies(
+    test_node
+    rclcpp
 )
 
 

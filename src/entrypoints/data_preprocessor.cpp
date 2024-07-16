@@ -1,7 +1,7 @@
 #include "dmp_ros2/data_preprocessor.hpp"
+
 #include <memory>
 
-#include <rclcpp/executors/single_threaded_executor.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 int

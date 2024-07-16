@@ -18,6 +18,7 @@ namespace rv = ranges::views;
 
 using dmp_ros2::PosTraj_t;
 using dmp_ros2::SE3;
+using dmp_ros2::SegmentationProperties;
 using dmp_ros2::Traj_t;
 
 using TrajSample_t = dmp::StampedPosVelAccSample_t<SE3>;
@@ -92,21 +93,22 @@ dmp_ros2::filter_traj(
 }
 
 std::vector<Traj_t>
-dmp_ros2::segment_trajectory(
-        const Traj_t&      traj,
-        const double&      vel_th,
-        const std::size_t& min_demonstration_length,
-        const std::size_t& window_size,
-        const std::size_t& stop_len
-) {
-    auto moving_parts =
-            filter_traj(traj, vel_th, min_demonstration_length, window_size, stop_len);
+dmp_ros2::segment_trajectory(const Traj_t& traj, const SegmentationProperties& prop) {
+    auto moving_parts = filter_traj(
+            traj,
+            prop.vel_th,
+            prop.min_demonstration_length,
+            prop.window_size,
+            prop.stop_len
+    );
     auto subtrajectories =
             rv::zip(moving_parts, traj)
             | rv::split_when([](const auto& pair) -> bool { return !rs::get<0>(pair); })
-            | rv::filter([min_demonstration_length](const auto& rng) -> bool {
-                  return (rs::distance(rng) > min_demonstration_length);
-              });
+            | rv::filter(
+                    [min = prop.min_demonstration_length](const auto& rng) -> bool {
+                        return (rs::distance(rng) > min);
+                    }
+            );
 
     std::vector<Traj_t> res;
     for (const auto& subtraj : subtrajectories) {

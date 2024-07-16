@@ -59,7 +59,9 @@ std::vector<DemonstrationHandler> all_demonstration_handlers(
         const std::filesystem::path& base_path
 );
 
-std::vector<Se3Dmp_t> all_demonstrations_dmps(const std::filesystem::path& base_path, std::size_t& n_basis);
+std::vector<Se3Dmp_t> all_demonstrations_dmps(
+        const std::filesystem::path& base_path, std::size_t& n_basis
+);
 
 }  // namespace dmp_ros2::fs
 

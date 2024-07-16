@@ -11,6 +11,13 @@
 
 namespace dmp_ros2 {
 
+struct SegmentationProperties {
+    double      vel_th{0.2};
+    std::size_t min_demonstration_length{100};
+    std::size_t window_size{20};
+    std::size_t stop_len{40};
+};
+
 PosTraj_t rolling_mean(const PosTraj_t& traj, const std::vector<double>& weights);
 
 Traj_t differentiate(const PosTraj_t& traj);
@@ -25,11 +32,7 @@ std::vector<bool> filter_traj(
 );
 
 std::vector<Traj_t> segment_trajectory(
-        const Traj_t&      traj,
-        const double&      vel_th,
-        const std::size_t& min_demonstration_length,
-        const std::size_t& window_size,
-        const std::size_t& stop_len
+        const Traj_t& traj, const SegmentationProperties& prop
 );
 
 namespace internal {

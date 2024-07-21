@@ -1,18 +1,25 @@
 #include "dmp_ros2/trajectory_listener.hpp"
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 #include <string>
 #include <tf2/buffer_core.h>
 #include <tf2/time.h>
+#include <vector>
 
 #include <geometry_msgs/msg/detail/transform_stamped__struct.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 
 #include "dmp_ros2/defines.hpp"
 #include "dmp_ros2/demonstration_handler.hpp"
 #include "dmp_ros2/dmp_filesystem.hpp"
+#include "dmp_ros2/transformations.hpp"
 
 using dmp_ros2::TrajectoryListener;
+
+using DoubleVec_t = std::vector<double>;
 
 TrajectoryListener::TrajectoryListener() :
         rclcpp::Node("trajectory_listener"),
@@ -23,6 +30,8 @@ TrajectoryListener::TrajectoryListener() :
         _tf_listener(_tf_buff) {
     declare_parameter("input_topic", "/demonstrated_pose");
     declare_parameter("demonstration_folder", "");
+    declare_parameter("translation", DoubleVec_t({0.0, 0.0, 0.0}));
+    declare_parameter("rpy", DoubleVec_t({0.0, 0.0, 0.0}));
 
     const std::string topic = get_parameter("input_topic").as_string();
 
@@ -68,6 +77,28 @@ TrajectoryListener::~TrajectoryListener() {
     std::string out_folder = get_parameter("demonstration_folder").as_string();
     if (out_folder.empty()) out_folder = dmp_ros2::constants::tests_data_dir;
 
+    const DoubleVec_t trans_data = get_parameter("translation").as_double_array();
+    const DoubleVec_t rpy_data   = get_parameter("rpy").as_double_array();
+
+    const Eigen::Vector3d    tool_transl{trans_data[0], trans_data[1], trans_data[2]};
+    const Eigen::Quaterniond tool_rot =
+            Eigen::AngleAxis(rpy_data[0], Eigen::Vector3d::UnitX())
+            * Eigen::AngleAxis(rpy_data[1], Eigen::Vector3d::UnitY())
+            * Eigen::AngleAxis(rpy_data[2], Eigen::Vector3d::UnitZ());
+    RCLCPP_INFO(get_logger(), "Additional tool transform:");
+    RCLCPP_INFO_STREAM(get_logger(), "  - translation: " << tool_transl.transpose());
+    RCLCPP_INFO(get_logger(), "  - rotation: ");
+    RCLCPP_INFO(get_logger(), "       roll: %.2lf deg", rpy_data[0] * 180 / M_PI);
+    RCLCPP_INFO(get_logger(), "       pitch: %.2lf deg", rpy_data[1] * 180 / M_PI);
+    RCLCPP_INFO(get_logger(), "       yaw: %.2lf deg", rpy_data[2] * 180 / M_PI);
+    RCLCPP_INFO_STREAM(get_logger(), "       as quaterion: " << tool_rot);
+
+    for (auto& sample : _traj) {
+        const Eigen::Affine3d sample_transf = affine_from_se3(std::get<SE3>(sample));
+        std::get<SE3>(sample).pos           = sample_transf * tool_transl;
+        std::get<SE3>(sample).ori *= tool_rot;
+    }
+
     Path_t               demonstration_path = future_demonstration_dir(out_folder);
     DemonstrationHandler handler(demonstration_path);
 
@@ -76,6 +107,7 @@ TrajectoryListener::~TrajectoryListener() {
             "Writing demonstration data into %s",
             handler.raw_data_file().c_str()
     );
+
     handler.write_raw_trajectory(_traj, _reference_frame_name);
     RCLCPP_INFO(get_logger(), "Exported %zu points", _traj.size());
 

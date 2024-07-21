@@ -84,7 +84,7 @@ TrajectoryListener::~TrajectoryListener() {
 
     for (const auto& frame_name : frame_names) {
         TransformStamped tf_transf =
-                _tf_buff.lookupTransform(frame_name, "world", tf2::TimePointZero);
+                _tf_buff.lookupTransform("world", frame_name, tf2::TimePointZero);
         dmp::riemannmanifold::SE3 se3_transf;
         se3_transf.pos(0)  = tf_transf.transform.translation.x;
         se3_transf.pos(1)  = tf_transf.transform.translation.y;

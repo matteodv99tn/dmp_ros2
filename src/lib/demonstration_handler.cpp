@@ -1,16 +1,19 @@
 #include "dmp_ros2/demonstration_handler.hpp"
 
+#include <fstream>
+#include <optional>
 #include <stdexcept>
 
 #include "dmp_ros2/dmp_filesystem.hpp"
 #include "dmp_ros2/se3_dmp.hpp"
+#include "dmp_ros2/transformations.hpp"
 #include "dmplib/data_handler/conversions.hpp"
 #include "dmplib/manifolds/aliases.hpp"
 #include "dmplib/manifolds/se3_manifold.hpp"
-#include "range/v3/all.hpp"
-#include "range/v3/view/join.hpp"
+#include "range/v3/view/filter.hpp"
 #include "range/v3/view/transform.hpp"
 
+using dmp_ros2::SE3;
 using dmp_ros2::Se3Dmp_t;
 using dmp_ros2::fs::DemonstrationHandler;
 using Path_t    = DemonstrationHandler::Path_t;
@@ -32,9 +35,11 @@ open_file(const DemonstrationHandler::Path_t& file_path) {
 }
 
 DemonstrationHandler::DemonstrationHandler(const Path_t& demonstration_folder_path) :
-        _folder_path(demonstration_folder_path) {
+        _folder_path(demonstration_folder_path), _transforms(std::nullopt) {
     if (!std::filesystem::exists(_folder_path))
         std::filesystem::create_directory(_folder_path);
+
+    load_frame_transforms();
 }
 
 void
@@ -57,11 +62,48 @@ DemonstrationHandler::write_frames_transforms(
     }
 }
 
+const std::vector<DemonstrationHandler::RefFrameData_t>&
+DemonstrationHandler::load_frame_transforms() {
+    if (!_transforms.has_value()) {
+        std::vector<RefFrameData_t> res;
+        std::ifstream               transf_file(raw_transforms_file());
+        std::string                 line;
+        std::string                 frame_name;
+        std::string                 frame_data;
+
+        while (std::getline(transf_file, line)) {
+            auto delim = line.find(":");
+            frame_name = line.substr(0, delim);
+            frame_data = line.substr(delim + 1);
+            res.emplace_back(frame_name, dmp::from::string<SE3>(frame_data));
+        }
+        _transforms = res;
+    }
+
+    return _transforms.value();
+}
+
 DemonstrationHandler::RawTrajectory_t
-DemonstrationHandler::load_raw_trajectory() const {
+DemonstrationHandler::load_raw_trajectory(const std::string& display_in) const {
     if (!has_all_raw_entries())
         throw std::runtime_error("Not all files are present in the raw data folder");
-    return dmp::from::file<std::tuple<dmp::TimeStamp_t, SE3>>(raw_data_file().string());
+
+    RawTrajectory_t res =
+            dmp::from::file<std::tuple<dmp::TimeStamp_t, SE3>>(raw_data_file().string()
+            );
+    if (display_in.empty()) return res;
+
+    const auto opt_transform = get_transformation(raw_data_frame(), display_in);
+    assert(opt_transform.has_value());
+    const Eigen::Affine3d transform     = opt_transform.value();
+    const SE3             se3_transform = se3_from_affine(transform);
+
+    for (auto& entry : res) {
+        std::get<SE3>(entry).pos = transform * std::get<SE3>(entry).pos;
+        std::get<SE3>(entry).ori = se3_transform.ori * std::get<SE3>(entry).ori;
+    }
+
+    return res;
 }
 
 void
@@ -101,6 +143,32 @@ DemonstrationHandler::load_demonstrated_dmps(const std::size_t& n_basis) const {
                return dmp_from_demonstration(tr, n);
            })
            | rs::to_vector;
+}
+
+std::optional<Eigen::Affine3d>
+DemonstrationHandler::get_transformation(const std::string& from, const std::string& to)
+        const {
+    assert(_transforms.has_value());
+
+    SE3  se3_from, se3_to;
+    bool from_found, to_found;
+
+    from_found = false;
+    to_found   = false;
+
+    for (const auto& [name, value] : _transforms.value()) {
+        if (name == from) {
+            from_found = true;
+            se3_from   = value;
+        }
+        if (name == to) {
+            to_found = true;
+            se3_to   = value;
+        }
+    }
+
+    if (from_found && to_found) return compute_transform(se3_from, se3_to);
+    return std::nullopt;
 }
 
 void
@@ -143,6 +211,14 @@ DemonstrationHandler::demonstration_data_dir_path() const {
     Path_t raw_dir = _folder_path / "processed_data";
     if (!std::filesystem::exists(raw_dir)) std::filesystem::create_directory(raw_dir);
     return raw_dir;
+}
+
+std::string
+DemonstrationHandler::raw_data_frame() const {
+    std::ifstream file(raw_data_refframename_file());
+    std::string   framename;
+    std::getline(file, framename);
+    return framename;
 }
 
 std::vector<DemonstrationHandler>

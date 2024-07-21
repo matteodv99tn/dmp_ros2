@@ -12,6 +12,7 @@
 #include "dmp_ros2/preprocessing.hpp"
 #include "dmplib/utils/filter.hpp"
 #include "range/v3/view/intersperse.hpp"
+#include "range/v3/view/join.hpp"
 #include "range/v3/view/transform.hpp"
 
 using dmp_ros2::DataPreprocessor;
@@ -26,18 +27,20 @@ using std::string;
 using std::vector;
 
 namespace params {
-static constexpr char dem_dir[]     = "demonstrations_directory";
-static constexpr char filt_w[]      = "filter_weights";
-static constexpr char vel_th[]      = "segmentation.velocity_th";
-static constexpr char min_dem_len[] = "segmentation.minimum_window_length";
-static constexpr char win_sz[]      = "segmentation.window_size";
-static constexpr char tail_sz[]     = "segmentation.tail_size";
-static constexpr char dmp_basis[]   = "n_basis";
+static constexpr char dem_dir[]        = "demonstrations_directory";
+static constexpr char dem_frame_name[] = "car_chassis";
+static constexpr char filt_w[]         = "filter_weights";
+static constexpr char vel_th[]         = "segmentation.velocity_th";
+static constexpr char min_dem_len[]    = "segmentation.minimum_window_length";
+static constexpr char win_sz[]         = "segmentation.window_size";
+static constexpr char tail_sz[]        = "segmentation.tail_size";
+static constexpr char dmp_basis[]      = "n_basis";
 }  // namespace params
 
 void
 DataPreprocessor::initialise_parameters() {
     declare_parameter(params::dem_dir, dmp_ros2::constants::tests_data_dir);
+    declare_parameter(params::dem_frame_name, "car_chassis");
     declare_parameter(params::filt_w, vector<double>({2.0, 1.0, 1.0, 0.5}));
     declare_parameter(params::vel_th, 0.2);
     declare_parameter(params::min_dem_len, 200);
@@ -53,9 +56,10 @@ DataPreprocessor::DataPreprocessor() : rclcpp::Node("dmpros2_data_preprocessor")
 
 void
 DataPreprocessor::process_data() const {
-    const string         dem_dir     = get_parameter(params::dem_dir).as_string();
-    const vector<double> filter      = get_parameter(params::filt_w).as_double_array();
-    const double         vel_th      = get_parameter(params::vel_th).as_double();
+    const string dem_dir        = get_parameter(params::dem_dir).as_string();
+    const string dem_frame_name = get_parameter(params::dem_frame_name).as_string();
+    const vector<double> filter = get_parameter(params::filt_w).as_double_array();
+    const double         vel_th = get_parameter(params::vel_th).as_double();
     const size_t         min_dem_len = get_parameter(params::min_dem_len).as_int();
     const size_t         win_sz      = get_parameter(params::win_sz).as_int();
     const size_t         tail_sz     = get_parameter(params::tail_sz).as_int();
@@ -75,6 +79,9 @@ DataPreprocessor::process_data() const {
     RCLCPP_INFO(get_logger(), "  - minimum demonstration length: %zu", min_dem_len);
     RCLCPP_INFO(get_logger(), "  - window size: %zu", win_sz);
     RCLCPP_INFO(get_logger(), "  - tail size: %zu", tail_sz);
+    RCLCPP_INFO(
+            get_logger(), "Projecting data into ref. frame '%s'", dem_frame_name.c_str()
+    );
 
 
     RCLCPP_INFO(
@@ -90,20 +97,21 @@ DataPreprocessor::process_data() const {
     seg_props.stop_len                 = tail_sz;
 
     for (const Path_t& dir : base_directories) {
-        process_single_directory(dir, filter, seg_props);
+        process_single_directory(dir, dem_frame_name, filter, seg_props);
     }
 }
 
 void
 DataPreprocessor::process_single_directory(
         const fs::Path_t&             dir,
+        const std::string&            data_domain,
         const vector<double>&         filter,
         const SegmentationProperties& seg_props
 ) const {
     RCLCPP_INFO(get_logger(), "Processing folder %s", dir.c_str());
     fs::DemonstrationHandler handler(dir);
 
-    auto raw_traj = handler.load_raw_trajectory();
+    auto raw_traj = handler.load_raw_trajectory(data_domain);
     RCLCPP_INFO(get_logger(), " - n. of data points: %zu", raw_traj.size());
 
     const auto traj = dmp_ros2::differentiate(

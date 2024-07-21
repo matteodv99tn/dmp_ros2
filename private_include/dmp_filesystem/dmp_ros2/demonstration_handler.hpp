@@ -1,12 +1,13 @@
 #ifndef DMPROS2_DEMONSTRATION_HANDLER_HPP
 #define DMPROS2_DEMONSTRATION_HANDLER_HPP
 
+#include <Eigen/Geometry>
 #include <filesystem>
 #include <string>
 #include <vector>
 
+#include "dmp_ros2/aliases.hpp"
 #include "dmp_ros2/se3_dmp.hpp"
-#include "dmplib/data_handler/conversions.hpp"
 #include "dmplib/manifolds/se3_manifold.hpp"
 
 namespace dmp_ros2::fs {
@@ -26,10 +27,10 @@ public:
     void write_raw_trajectory(
             const RawTrajectory_t& traj, const std::string& reference_frame
     ) const;
+    RawTrajectory_t load_raw_trajectory(const std::string& diplay_in = "") const;
 
     void write_frames_transforms(const std::vector<RefFrameData_t>& frames_data) const;
-
-    RawTrajectory_t load_raw_trajectory() const;
+    const std::vector<RefFrameData_t>& load_frame_transforms();
 
     void write_demonstrated_trajectories(
             const std::vector<DemonstrationTrajectory_t>& trajs
@@ -38,6 +39,11 @@ public:
     std::vector<Path_t>                    list_demonstrated_trajectories() const;
     std::vector<DemonstrationTrajectory_t> load_demonstrated_trajectories() const;
     std::vector<Se3Dmp_t> load_demonstrated_dmps(const std::size_t& n_basis) const;
+
+
+    std::optional<Eigen::Affine3d> get_transformation(
+            const std::string& from, const std::string& to
+    ) const;
 
 
     bool has_all_raw_entries() const;
@@ -50,9 +56,11 @@ public:
     Path_t demonstration_data_dir_path() const;
 
 private:
-    Path_t _folder_path;
+    Path_t                                     _folder_path;
+    std::optional<std::vector<RefFrameData_t>> _transforms;
 
-    void write_rawtraj_refframe(const std::string& frame_name) const;
+    void write_rawtraj_refframe(const std::string& frame_name) const;   
+    std::string raw_data_frame() const;
 };
 
 std::vector<DemonstrationHandler> all_demonstration_handlers(

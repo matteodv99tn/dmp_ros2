@@ -19,6 +19,7 @@ private:
 
     void process_single_directory(
             const fs::Path_t&             dir,
+            const std::string&            data_domain,
             const std::vector<double>&    filter,
             const SegmentationProperties& seg_props
     ) const;

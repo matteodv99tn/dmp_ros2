@@ -4,8 +4,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(ament_cmake REQUIRED)
 
+set(DMPROS2_CATCH2_TESTS ON)
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
+endif()
+
+if(${DMPROS2_CATCH2_TESTS})
+    include(cmake/catch2.cmake)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -30,6 +36,7 @@ add_library(
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/plots.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/trajectory_info.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/lib/se3_dmp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/lib/transformations.cpp
 )
 target_include_directories(
     dmp_commons
@@ -122,5 +129,23 @@ install(
     DESTINATION
     share/${PROJECT_NAME}
 )
+
+if(${DMPROS2_CATCH2_TESTS})
+    file(GLOB TEST_SRCS tests/*.cpp)
+    add_executable(
+        catch2_tests
+        ${TEST_SRCS}
+    )
+    target_link_libraries(
+        catch2_tests
+        PRIVATE
+        dmp_commons
+        Catch2::Catch2WithMain
+    )
+    install(
+        TARGETS catch2_tests
+        DESTINATION lib/${PROJECT_NAME}
+    )
+endif()
 
 ament_package()

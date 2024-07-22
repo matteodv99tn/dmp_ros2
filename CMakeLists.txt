@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 project(dmp_ros2)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake        REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
 set(DMPROS2_CATCH2_TESTS ON)
 
@@ -20,8 +21,11 @@ add_subdirectory(library)
 
 # ROS2 packages
 find_package(rclcpp         REQUIRED)
+find_package(rclpy          REQUIRED)
 find_package(geometry_msgs  REQUIRED)
 find_package(tf2_ros        REQUIRED)
+find_package(dmp_ros2_msgs  REQUIRED)
+
 
 configure_file(
     ${CMAKE_CURRENT_LIST_DIR}/include/${PROJECT_NAME}/defines.hpp.in
@@ -129,6 +133,15 @@ install(
     DESTINATION
     share/${PROJECT_NAME}
 )
+
+
+ament_python_install_package(${PROJECT_NAME})
+install(
+    PROGRAMS 
+    ${PROJECT_NAME}/mesh_frame_projector.py
+    DESTINATION lib/${PROJECT_NAME}
+)
+
 
 if(${DMPROS2_CATCH2_TESTS})
     file(GLOB TEST_SRCS tests/*.cpp)
